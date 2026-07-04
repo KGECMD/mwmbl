@@ -84,7 +84,7 @@ def test_get_marketing_consent_returns_latest_per_source(client, verified_user, 
 
     response = client.get(CONSENT_URL, HTTP_AUTHORIZATION=f"Bearer {access_token}")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["consent"]
     assert len(data) == 1
     assert data[0]["source"] == "API"
     assert data[0]["opted_in"] is False
@@ -106,7 +106,7 @@ def test_update_marketing_consent_appends_row(client, verified_user, access_toke
     assert MarketingConsent.objects.filter(user=verified_user, source=MarketingSource.GUI).count() == 2
 
     # GET now reflects the withdrawal.
-    latest = client.get(CONSENT_URL, HTTP_AUTHORIZATION=f"Bearer {access_token}").json()
+    latest = client.get(CONSENT_URL, HTTP_AUTHORIZATION=f"Bearer {access_token}").json()["consent"]
     assert latest[0]["opted_in"] is False
 
 

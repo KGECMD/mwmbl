@@ -115,6 +115,12 @@ class MarketingConsentResponse(Schema):
     timestamp: datetime = Field(description="When this consent decision was recorded.")
 
 
+class MarketingConsentListResponse(Schema):
+    consent: list[MarketingConsentResponse] = Field(
+        description="Current marketing consent state per source the user has a record for.",
+    )
+
+
 class Registration(Schema):
     email: str = Field(description="Email address for the new account. Must be unique.")
     password: str = Field(description="Password for the new account.")

@@ -24,7 +24,7 @@ from mwmbl.platform.schemas import (
     UserProfileResponse, SubscriptionResponse, CheckoutRequest, CheckoutResponse, ChangePlanRequest,
     ForgotPasswordRequest, ResetPasswordRequest,
     AgreementAcceptRequest, AgreementResponse,
-    MarketingConsentRequest, MarketingConsentResponse,
+    MarketingConsentRequest, MarketingConsentResponse, MarketingConsentListResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -483,7 +483,7 @@ def get_agreement_history(request) -> list[AgreementResponse]:
 @router.get(
     "/marketing-consent",
     auth=JWTAuth(),
-    response=list[MarketingConsentResponse],
+    response=MarketingConsentListResponse,
     summary="Get marketing email consent",
     description=(
         "Returns the current marketing email consent state for each source the user has a "
@@ -493,9 +493,9 @@ def get_agreement_history(request) -> list[AgreementResponse]:
     ),
     tags=["Marketing"],
 )
-def get_marketing_consent(request) -> list[MarketingConsentResponse]:
+def get_marketing_consent(request) -> MarketingConsentListResponse:
     check_email_verified(request)
-    result = []
+    consent = []
     for source in MarketingSource:
         latest = (
             MarketingConsent.objects.filter(user=request.user, source=source)
@@ -503,12 +503,12 @@ def get_marketing_consent(request) -> list[MarketingConsentResponse]:
             .first()
         )
         if latest:
-            result.append(MarketingConsentResponse(
+            consent.append(MarketingConsentResponse(
                 source=latest.source,
                 opted_in=latest.opted_in,
                 timestamp=latest.timestamp,
             ))
-    return result
+    return MarketingConsentListResponse(consent=consent)
 
 
 @router.post(
