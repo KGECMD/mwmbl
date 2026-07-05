@@ -366,6 +366,20 @@ def _record_agreements(user: MwmblUser, agreement_types: list) -> None:
 
 
 def _record_marketing_consent(user: MwmblUser, source: MarketingSource, opted_in: bool) -> MarketingConsent:
+    """
+    Append a consent decision for this (user, source), but only when it changes the
+    current state. Repeated identical decisions — e.g. mail-client scanners POSTing
+    the one-click unsubscribe URL, or a user re-confirming an existing choice — return
+    the existing row instead of growing the audit trail. Returns the row representing
+    the current state.
+    """
+    latest = (
+        MarketingConsent.objects.filter(user=user, source=source)
+        .order_by("-timestamp", "-id")
+        .first()
+    )
+    if latest is not None and latest.opted_in == opted_in:
+        return latest
     return MarketingConsent.objects.create(user=user, source=source, opted_in=opted_in)
 
 

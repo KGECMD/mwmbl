@@ -111,6 +111,22 @@ def test_update_marketing_consent_appends_row(client, verified_user, access_toke
 
 
 @pytest.mark.django_db
+def test_update_marketing_consent_noop_does_not_append(client, verified_user, access_token):
+    MarketingConsent.objects.create(user=verified_user, source=MarketingSource.GUI, opted_in=True)
+
+    response = client.post(
+        CONSENT_URL,
+        data=json.dumps({"source": "GUI", "opted_in": True}),
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {access_token}",
+    )
+    assert response.status_code == 200
+    assert response.json()["opted_in"] is True
+    # Re-confirming the existing state must not grow the audit trail.
+    assert MarketingConsent.objects.filter(user=verified_user, source=MarketingSource.GUI).count() == 1
+
+
+@pytest.mark.django_db
 def test_marketing_consent_requires_auth(client):
     assert client.get(CONSENT_URL).status_code == 401
 
@@ -133,9 +149,11 @@ def test_unsubscribe_is_idempotent(client, verified_user):
     token = make_unsubscribe_token(verified_user, MarketingSource.GUI)
     client.post(f"{UNSUBSCRIBE_URL}?token={token}")
     client.post(f"{UNSUBSCRIBE_URL}?token={token}")
+    # Idempotent at the storage layer too: a repeat POST (e.g. a mail-client link
+    # scanner) that doesn't change the state must not append a duplicate opt-out row.
     consents = MarketingConsent.objects.filter(user=verified_user, source=MarketingSource.GUI)
-    assert consents.count() == 2
-    assert all(c.opted_in is False for c in consents)
+    assert consents.count() == 1
+    assert consents.first().opted_in is False
 
 
 @pytest.mark.django_db
