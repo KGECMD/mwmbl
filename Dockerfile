@@ -65,9 +65,6 @@ ADD nginx.conf.sigil /app
 COPY manage.py /app
 # ADD app.json /app
 
-# Set up a volume where the data will live
-VOLUME ["/data"]
-
 EXPOSE 5000
 
 CMD ["/venv/bin/mwmbl-tinysearchengine"]
