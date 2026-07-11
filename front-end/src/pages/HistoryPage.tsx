@@ -1,0 +1,2 @@
+import { Clock } from 'lucide-react'
+export default function HistoryPage() { return (<div className="max-w-4xl mx-auto space-y-8"><div><h1 className="text-3xl font-bold">History</h1><p className="text-neutral-500 mt-2">Your recent searches</p></div><div className="text-center py-16 text-neutral-500"><Clock className="w-16 h-16 mx-auto mb-4 opacity-50" /><h3 className="text-xl font-semibold mb-2">No search history</h3></div></div>) }

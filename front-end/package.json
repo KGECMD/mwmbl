@@ -1,20 +1,33 @@
 {
-  "name": "front-end",
+  "name": "mwmbl-frontend",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp node_modules/htmx.org/dist/htmx.min.js dist/assets/htmx.min.js",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "devDependencies": {
-    "@vitejs/plugin-legacy": "^2.3.1",
-    "terser": "^5.16.1",
-    "vite": "^3.2.3"
-  },
   "dependencies": {
-    "chart.js": "^4.4.0",
-    "htmx.org": "^1.9.9",
-    "sortablejs": "^1.15.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "zustand": "^4.5.4",
+    "axios": "^1.7.4",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "lucide-react": "^0.424.0",
+    "framer-motion": "^11.3.8",
+    "@tanstack/react-query": "^5.51.21"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
   }
 }
