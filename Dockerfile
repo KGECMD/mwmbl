@@ -1,70 +1,108 @@
-FROM node:hydrogen-bullseye as front-end
+# =============================================================================
+# MWMBL Dockerfile - Production Ready
+# =============================================================================
+# Multi-stage build: Frontend -> Python Backend -> Runtime
+# =============================================================================
 
-COPY front-end /front-end
+# Stage 1: Build Frontend
+FROM node:20-bullseye AS front-end
+
 WORKDIR /front-end
-RUN npm install && npm run build
 
+# Copy and install dependencies
+COPY front-end/package*.json ./
+RUN npm ci --only=production && npm run build
 
-FROM python:3.11.12-bookworm as base
+# Stage 2: Build Python Backend with Rust extension
+FROM python:3.11-bookworm AS builder
 
-ENV PYTHONFAULTHANDLER=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-FROM base as builder
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    clang \
+    libclang-dev \
+    libpq-dev \
+    pkg-config \
+    git \
+    && rm -rf /var/lib/apt/lists/
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
-# Install Rust toolchain (required by maturin to compile the mwmbl_rank extension)
-# Install clang/libclang-dev for bindgen (used by xgboost_lib-sys)
-# Install patchelf so maturin can bundle libxgboost.so into the wheel RPATH
-RUN apt-get update && \
-    apt-get install -y clang libclang-dev patchelf && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain stable
+# Install Rust toolchain
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Create a /venv directory & environment.
-# This directory will be copied into the final stage of docker build.
-RUN uv venv /venv
+# Create virtual environment
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-# Copy only the necessary files to build/install the python package.
-# mwmbl/resources is needed because idf.rs and wiki.rs embed JSON files at
-# compile time via include_str!("../../mwmbl/resources/...").
-COPY pyproject.toml uv.lock /app/
-COPY mwmbl /app/mwmbl
-COPY mwmbl_rank /app/mwmbl_rank
+# Copy dependency files first for better caching
+COPY pyproject.toml uv.lock ./
 
-# Working directory is /app
-# Use uv to install the mwmbl python package including the mwmbl_rank Rust
-# extension. PEP 517/518 allows uv to use maturin as the build backend.
-RUN uv pip install --python /venv/bin/python .
+# Install build tools
+RUN pip install maturin
 
-# Copy libxgboost.so (prebuilt by the xgb crate) into the mwmbl_rank package
-# directory and patch the extension's RPATH so it finds the library at runtime.
-RUN SODIR=/venv/lib/python3.11/site-packages/mwmbl_rank && \
-    cp /app/mwmbl_rank/target/release/deps/libxgboost.so "$SODIR/" && \
-    patchelf --set-rpath '$ORIGIN' "$SODIR/mwmbl_rank.cpython-311-x86_64-linux-gnu.so"
+# Copy application source
+COPY mwmbl/ ./mwmbl/
+COPY mwmbl_rank/ ./mwmbl_rank/
+COPY manage.py ./
 
-FROM base as final
+# Build and install the package with Rust extensions
+RUN pip install --no-build-isolation -e .
 
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Stage 3: Runtime Image
+FROM python:3.11-bookworm-slim AS runtime
 
-# Copy only the required /venv directory from the builder image that contains mwmbl and its dependencies
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PYTHONTRACEMALLOC=1
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/
+
+# Create non-root user for security
+RUN groupadd --gid 1000 mwmbl && \
+    useradd --uid 1000 --gid mwmbl --shell /bin/bash --create-home mwmbl
+
+# Copy virtual environment from builder
 COPY --from=builder /venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-# Copy the front end build
-COPY --from=front-end /front-end/dist /front-end-build
+# Copy frontend build
+COPY --from=front-end /front-end/dist /app/static
 
-ADD nginx.conf.sigil /app
-COPY manage.py /app
-# ADD app.json /app
+# Copy application files
+COPY --from=builder /app/manage.py /app/
+COPY --from=builder /app/mwmbl /app/mwmbl/
 
+# Create necessary directories
+RUN mkdir -p /app/storage /app/static_files && \
+    chown -R mwmbl:mwmbl /app
+
+# Switch to non-root user
+USER mwmbl
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health/ || exit 1
+
+# Expose port
 EXPOSE 5000
 
-CMD ["/venv/bin/mwmbl-tinysearchengine"]
+# Default command
+CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]
