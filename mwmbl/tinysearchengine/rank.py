@@ -36,6 +36,57 @@ WIKI_MAX_SCORE = next(iter(WIKI_SCORES.values()))
 DOCUMENT_FREQUENCIES = json.load(open(Path(__file__).parent.parent / "resources" / "document_counts.json"))
 N_DOCUMENTS = max(DOCUMENT_FREQUENCIES.values())
 
+# BM25 parameters (optimized for search)
+BM25_K1 = 1.5  # Term frequency saturation
+BM25_B = 0.75  # Document length normalization
+
+# Boost factors for ranking
+TITLE_MATCH_BOOST = 4.0
+EXTRACT_MATCH_BOOST = 1.0
+DOMAIN_MATCH_BOOST = 2.0
+PATH_MATCH_BOOST = 1.0
+FRESHNESS_BOOST = 0.1  # Boost for recently crawled content
+QUALITY_BOOST = 0.2  # Boost for high-quality domains
+
+
+def calculate_bm25(tf: int, doc_length: int, avg_doc_length: float, idf: float) -> float:
+    """
+    Calculate BM25 score for a term in a document.
+    
+    BM25 is a probabilistic ranking function used for text search.
+    It improves upon simple TF-IDF by adding saturation to term frequency
+    and proper document length normalization.
+    
+    Args:
+        tf: Term frequency in the document
+        doc_length: Length of the document
+        avg_doc_length: Average document length in the corpus
+        idf: Inverse document frequency of the term
+    
+    Returns:
+        BM25 score (higher = more relevant)
+    """
+    if tf == 0 or avg_doc_length == 0:
+        return 0.0
+    
+    # BM25 formula with saturation
+    numerator = tf * (BM25_K1 + 1)
+    denominator = tf + BM25_K1 * (1 - BM25_B + BM25_B * doc_length / avg_doc_length)
+    
+    return idf * numerator / denominator
+
+
+def get_idf(term: str) -> float:
+    """
+    Calculate IDF (Inverse Document Frequency) for a term.
+    
+    IDF measures how common or rare a term is across all documents.
+    Rare terms get higher scores, common terms (like stopwords) get lower scores.
+    """
+    doc_freq = DOCUMENT_FREQUENCIES.get(term, 1)
+    # Smoothed IDF to avoid zero scores
+    return math.log((N_DOCUMENTS + 1) / (doc_freq + 1))
+
 
 def score_result(terms: list[str], result: Document, is_complete: bool):
     features = get_features(terms, result.title, result.url, result.extract, result.score, is_complete)

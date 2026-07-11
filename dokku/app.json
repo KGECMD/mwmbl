@@ -1,0 +1,15 @@
+{
+  "name": "mwmbl",
+  "description": "An open source, non-profit web search engine",
+  "repository": "https://github.com/mwmbl/mwmbl",
+  "image": "mwmbl/mwmbl:latest",
+  "keywords": [
+    "search",
+    "search-engine",
+    "open-source",
+    "django",
+    "python"
+  ],
+  "stack": "container",
+  "dockerfile": "Dockerfile"
+}

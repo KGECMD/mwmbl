@@ -87,10 +87,10 @@ STATICFILES_DIRS.append(str(Path(__file__).parent.parent / "front-end" / "assets
 # Data Paths
 # =============================================================================
 
-DATA_PATH = os.environ.get("MWMBL_DATA_PATH", "/app/storage")
+DATA_PATH = os.environ.get("DATA_PATH", "/app/storage")
 Path(DATA_PATH).mkdir(parents=True, exist_ok=True)
 
-INDEX_NAME = os.environ.get("MWMBL_INDEX_NAME", 'index-v2.tinysearch')
+INDEX_NAME = os.environ.get("INDEX_NAME", 'index-v2.tinysearch')
 
 # Bloom filter paths
 NUM_URLS_IN_BLOOM_FILTER = int(os.environ.get("NUM_URLS_IN_BLOOM_FILTER", 100_000_000))
@@ -103,7 +103,7 @@ DOMAIN_LINKS_BLOOM_FILTER_PATH = str(Path(DATA_PATH) / "links_{domain_group}.blo
 REQUEST_CACHE_PATH = f"{DATA_PATH}/request_cache"
 Path(REQUEST_CACHE_PATH).mkdir(parents=True, exist_ok=True)
 
-BATCH_DIR_NAME = os.environ.get("MWMBL_BATCH_DIR", "batches")
+BATCH_DIR_NAME = os.environ.get("BATCH_DIR", "batches")
 
 
 # =============================================================================
