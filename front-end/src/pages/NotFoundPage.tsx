@@ -1,0 +1,3 @@
+import { Link } from 'react-router-dom'
+import { Home, Search } from 'lucide-react'
+export default function NotFoundPage() { return (<div className="min-h-[60vh] flex items-center justify-center"><div className="text-center"><h1 className="text-8xl font-bold gradient-text mb-4">404</h1><h2 className="text-2xl font-semibold mb-2">Page not found</h2><p className="text-neutral-500 mb-8">The page you're looking for doesn't exist.</p><div className="flex items-center justify-center gap-4"><Link to="/" className="btn-primary"><Home className="w-4 h-4 mr-2" />Go Home</Link><Link to="/search" className="btn-secondary"><Search className="w-4 h-4 mr-2" />Search</Link></div></div></div>) }
