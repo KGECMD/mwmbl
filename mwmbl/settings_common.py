@@ -151,6 +151,21 @@ DEFAULT_FROM_EMAIL = "admin@mwmbl.org"
 
 LOGIN_REDIRECT_URL = "/"
 
+# Allauth confirmation URL - critical for email verification
+# This must be set to the frontend domain where users confirm their email
+# In production, this should be set via environment variable
+ACCOUNT_CONFIRMATION_URL = os.environ.get("ACCOUNT_CONFIRMATION_URL", "https://mwmbl.org/confirm-email")
+
+# Allauth email settings
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[MWMBL] "
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Auto-login after email confirmation
+ACCOUNT_SESSION_REMEMBER = True  # Remember me checkbox on by default
+ACCOUNT_UNIQUE_EMAIL = True  # Ensure email uniqueness
+ACCOUNT_MAX_EMAIL_ADDRESSES = 1  # Only one email per account
+
+# Login URL
+LOGIN_URL = "/accounts/login/"
+
 FOOTER_LINKS = [
     {
         "name": "Donate",
