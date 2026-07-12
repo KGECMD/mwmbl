@@ -1,0 +1,12 @@
+# Dokku / Heroku-style Procfile for Mwmbl
+#
+# Dokku auto-detects a Procfile and creates one web process type per `web:` entry.
+# `main.py` switches behavior on the MWMBL_APP env var, so additional background
+# workers should be deployed as separate Dokku apps with a different MWMBL_APP
+# (e.g. `mwmbl-update-urls`, `mwmbl-update-batches`, `mwmbl-copy-indexes`,
+# `mwmbl-count-urls`) and either a `Procfile` or by setting the MWMBL_APP env var
+# directly.
+#
+# The startup command runs `mwmbl-tinysearchengine`, which is the Console Script
+# declared in pyproject.toml and dispatches on MWMBL_APP.
+web: MWMBL_APP=server /venv/bin/mwmbl-tinysearchengine

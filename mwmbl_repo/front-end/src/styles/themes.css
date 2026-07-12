@@ -1,0 +1,166 @@
+/**
+ * 10 colour / skin themes for the Mwmbl front-end.
+ *
+ * Themes are selected by setting `data-theme="..."` on the document body
+ * (or any element higher in the cascade). The default `:root` block is the
+ * "light" theme — applied automatically when no `data-theme` is set.
+ *
+ * Adding a new theme = (1) define a `[data-theme="my-name"]` block here with
+ * the seven CSS custom properties, and (2) add the name to the THEMES list in
+ * `front-end/src/themes.js`.
+ *
+ * The seven custom properties below are the minimum useful surface; downstream
+ * components are free to read more. Keep them stable across themes to avoid
+ * layout shift on theme switch.
+ */
+
+:root,
+[data-theme="light"] {
+  --mwmbl-bg: #ffffff;
+  --mwmbl-bg-elevated: #f7f7f8;
+  --mwmbl-fg: #1a1a1a;
+  --mwmbl-fg-muted: #5b5b5b;
+  --mwmbl-link: #1a4fbf;
+  --mwmbl-link-visited: #5b3aa8;
+  --mwmbl-border: #d8d8da;
+  --mwmbl-accent: #0066cc;
+  --mwmbl-color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --mwmbl-bg: #121316;
+  --mwmbl-bg-elevated: #1d1f24;
+  --mwmbl-fg: #e6e6e9;
+  --mwmbl-fg-muted: #a0a0a8;
+  --mwmbl-link: #8ab4ff;
+  --mwmbl-link-visited: #c4a3ff;
+  --mwmbl-border: #2c2f36;
+  --mwmbl-accent: #4c8eff;
+  --mwmbl-color-scheme: dark;
+}
+
+/* High contrast themes — WCAG AAA contrast ratios where practical. */
+[data-theme="high-contrast-light"] {
+  --mwmbl-bg: #ffffff;
+  --mwmbl-bg-elevated: #f0f0f0;
+  --mwmbl-fg: #000000;
+  --mwmbl-fg-muted: #1a1a1a;
+  --mwmbl-link: #0000aa;
+  --mwmbl-link-visited: #4b0082;
+  --mwmbl-border: #000000;
+  --mwmbl-accent: #0000aa;
+  --mwmbl-color-scheme: light;
+}
+
+[data-theme="high-contrast-dark"] {
+  --mwmbl-bg: #000000;
+  --mwmbl-bg-elevated: #0d0d0d;
+  --mwmbl-fg: #ffffff;
+  --mwmbl-fg-muted: #e0e0e0;
+  --mwmbl-link: #ffff00;
+  --mwmbl-link-visited: #ff90ff;
+  --mwmbl-border: #ffffff;
+  --mwmbl-accent: #ffff00;
+  --mwmbl-color-scheme: dark;
+}
+
+[data-theme="sepia"] {
+  --mwmbl-bg: #f4ecd8;
+  --mwmbl-bg-elevated: #ebe1c6;
+  --mwmbl-fg: #3a2a18;
+  --mwmbl-fg-muted: #6b5440;
+  --mwmbl-link: #7a3a18;
+  --mwmbl-link-visited: #6b2a78;
+  --mwmbl-border: #c2b48f;
+  --mwmbl-accent: #8a4a20;
+  --mwmbl-color-scheme: light;
+}
+
+[data-theme="solarized-light"] {
+  --mwmbl-bg: #fdf6e3;
+  --mwmbl-bg-elevated: #eee8d5;
+  --mwmbl-fg: #586e75;
+  --mwmbl-fg-muted: #93a1a1;
+  --mwmbl-link: #268bd2;
+  --mwmbl-link-visited: #6c71c4;
+  --mwmbl-border: #d8d2bd;
+  --mwmbl-accent: #b58900;
+  --mwmbl-color-scheme: light;
+}
+
+[data-theme="solarized-dark"] {
+  --mwmbl-bg: #002b36;
+  --mwmbl-bg-elevated: #073642;
+  --mwmbl-fg: #93a1a1;
+  --mwmbl-fg-muted: #586e75;
+  --mwmbl-link: #2aa198;
+  --mwmbl-link-visited: #6c71c4;
+  --mwmbl-border: #0a4250;
+  --mwmbl-accent: #b58900;
+  --mwmbl-color-scheme: dark;
+}
+
+[data-theme="dracula"] {
+  --mwmbl-bg: #282a36;
+  --mwmbl-bg-elevated: #21222c;
+  --mwmbl-fg: #f8f8f2;
+  --mwmbl-fg-muted: #6272a4;
+  --mwmbl-link: #8be9fd;
+  --mwmbl-link-visited: #ff79c6;
+  --mwmbl-border: #44475a;
+  --mwmbl-accent: #bd93f9;
+  --mwmbl-color-scheme: dark;
+}
+
+[data-theme="nord"] {
+  --mwmbl-bg: #2e3440;
+  --mwmbl-bg-elevated: #3b4252;
+  --mwmbl-fg: #eceff4;
+  --mwmbl-fg-muted: #81a1c1;
+  --mwmbl-link: #88c0d0;
+  --mwmbl-link-visited: #b48ead;
+  --mwmbl-border: #434c5e;
+  --mwmbl-accent: #a3be8c;
+  --mwmbl-color-scheme: dark;
+}
+
+[data-theme="catppuccin-latte"] {
+  --mwmbl-bg: #eff1f5;
+  --mwmbl-bg-elevated: #e6e9ef;
+  --mwmbl-fg: #4c4f69;
+  --mwmbl-fg-muted: #7c7f93;
+  --mwmbl-link: #1e66f5;
+  --mwmbl-link-visited: #8839ef;
+  --mwmbl-border: #ccd0da;
+  --mwmbl-accent: #fe640b;
+  --mwmbl-color-scheme: light;
+}
+
+/* Apply the chosen theme to the page itself. Components should consume the
+ * --mwmbl-* variables; they must NEVER pin a colour to keep theming working. */
+html {
+  background-color: var(--mwmbl-bg);
+  color: var(--mwmbl-fg);
+  color-scheme: var(--mwmbl-color-scheme);
+}
+
+body {
+  background-color: var(--mwmbl-bg);
+  color: var(--mwmbl-fg);
+}
+
+a {
+  color: var(--mwmbl-link);
+}
+a:visited {
+  color: var(--mwmbl-link-visited);
+}
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--mwmbl-accent);
+  outline-offset: 2px;
+}
