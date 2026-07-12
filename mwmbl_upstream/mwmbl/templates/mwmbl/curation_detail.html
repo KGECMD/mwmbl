@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{%  load humanize %}
+
+{% block content %}
+  <br>
+  <h1 class="center">Curation by {{ curation.user }} {{ curation.timestamp|naturaltime }}
+    for query <a href="/?q={{ curation.query|urlencode }}">{{ curation.query }}</a></h1>
+  <br>
+  {# Only show if the user is logged in #}
+  {% if user.is_authenticated %}
+    {% include "mwmbl/flags.html" %}
+    <br>
+    <a href="{% url "flag_curation" curation.id %}" hx-get="{% url "flag_curation" curation.id %}" hx-swap="outerHTML">Flag this curation</a>
+  {% endif %}
+  <br>
+  <div class="compare">
+    <div class="compare-item">
+      <h1 class="center">Original results</h1>
+      <ul class="results">
+        {% for result in curation.original_results %}
+          {% include "result-static.html" with query=curation.query %}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="compare-item">
+      <h1 class="center">New results</h1>
+      <ul class="results">
+        {% for result in curation.new_results %}
+          {% include "result-static.html" with query=curation.query %}
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endblock %}

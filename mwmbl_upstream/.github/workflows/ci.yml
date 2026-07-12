@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_mwmbl
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.12'
+      #----------------------------------------------
+      #  -----  install & configure uv  -----
+      #----------------------------------------------
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      #----------------------------------------------
+      #       install Rust toolchain (required by maturin)
+      #----------------------------------------------
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      #----------------------------------------------
+      # install dependencies
+      #----------------------------------------------
+      - name: Install dependencies
+        run: uv sync --group dev
+      #----------------------------------------------
+      # build and install the project with maturin
+      # (compiles the Rust extension and installs the package)
+      #----------------------------------------------
+      - name: Install project with maturin
+        run: uv run maturin develop
+      #----------------------------------------------
+      #              run test suite
+      #----------------------------------------------
+      - name: Create test directories and files
+        run: |
+          mkdir -p /tmp/test_mwmbl_data
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_mwmbl
+          DJANGO_SETTINGS_MODULE: mwmbl.settings_test
+        run: |
+          uv run pytest
